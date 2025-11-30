@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Challenge VialSafe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --bg:#f4f6fb;
+      --primary:#005bbb;
+      --secondary:#ff3b3b;
+      --accent:#02b875;
+      --card-bg:#ffffff;
+      --board-green:#22b573;
+      --board-yellow:#ffc857;
+      --board-red:#ff595e;
+      --text:#222;
+    }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
+    body{margin:0;background:var(--bg);color:var(--text);}
+    h1,h2,h3,p{margin:0;}
+    .page{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+    }
+    .hidden{display:none;}
+
+    /* PANTALLA INICIAL */
+    #splash{
+      flex-direction:column;
+      gap:16px;
+      text-align:center;
+    }
+    .mascot-wrap{
+      position:relative;
+      display:inline-flex;
+      align-items:flex-end;
+      gap:16px;
+      padding:16px;
+    }
+    .mascot-wrap img{
+      max-width:260px;
+      height:auto;
+    }
+    .speech-bubble{
+      position:relative;
+      background:#ffffff;
+      border-radius:16px;
+      padding:16px 20px;
+      max-width:340px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.12);
+      border:2px solid var(--primary);
+      text-align:left;
+    }
+    .speech-bubble::after{
+      content:"";
+      position:absolute;
+      left:-18px;
+      bottom:24px;
+      width:0;
+      height:0;
+      border-top:10px solid transparent;
+      border-bottom:10px solid transparent;
+      border-right:18px solid #ffffff;
+      filter:drop-shadow(-2px 0 0 var(--primary));
+    }
+    #bubbleText{
+      font-size:1.1rem;
+      font-weight:700;
+    }
+    #subtitle{
+      font-size:0.9rem;
+      color:#555;
+      margin-top:6px;
+    }
+
+    .config-panel{
+      margin-top:12px;
+      display:inline-block;
+      text-align:left;
+      padding:12px 16px;
+      border-radius:14px;
+      background:#ffffff;
+      border:1px solid #d8e1f3;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      max-width:420px;
+    }
+    .config-panel h2{
+      font-size:1rem;
+      margin-bottom:6px;
+    }
+    .config-panel p{
+      font-size:0.8rem;
+      color:#666;
+      margin-bottom:8px;
+    }
+    .player-config-row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin-bottom:6px;
+      font-size:0.85rem;
+    }
+    .player-config-row label{
+      flex:1;
+    }
+    .config-input{
+      width:100%;
+      padding:4px 6px;
+      border-radius:6px;
+      border:1px solid #c3cde0;
+      font-size:0.85rem;
+    }
+    .config-select{
+      padding:4px 6px;
+      border-radius:6px;
+      border:1px solid #c3cde0;
+      font-size:0.85rem;
+    }
+
+    .btn{
+      padding:10px 26px;
+      font-size:1rem;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      color:#ffffff;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      box-shadow:0 4px 12px rgba(0,0,0,0.18);
+      transition:transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn.small{
+      padding:8px 16px;
+      font-size:0.9rem;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 6px 16px rgba(0,0,0,0.22);
+    }
+    .btn:active{
+      transform:translateY(1px);
+      box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    /* PANTALLA DE JUEGO */
+    #game{
+      width:100%;
+      max-width:1200px;
+      margin:0 auto;
+      display:none; /* oculto hasta que se presione Comenzar */
+    }
+    .game-layout{
+      display:grid;
+      grid-template-columns:1.3fr 1fr;
+      gap:20px;
+      align-items:stretch;
+    }
+    #board{
+      background:#e6ecff;
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.12);
+      position:relative;
+    }
+    #board-title{
+      text-align:center;
+      font-weight:800;
+      margin-bottom:4px;
+      letter-spacing:0.06em;
+    }
+    .board-subtitle{
+      text-align:center;
+      font-size:0.85rem;
+      margin-bottom:8px;
+    }
+    .board-grid{
+      display:grid;
+      grid-template-columns:repeat(8,1fr);
+      grid-template-rows:repeat(8,1fr);
+      gap:3px;
+      aspect-ratio:1/1;
+    }
+    .cell{
+      border-radius:6px;
+      font-size:0.7rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:2px;
+      font-weight:600;
+      color:#333;
+      position:relative;
+    }
+    .cell.edge{background:#ffffff;}
+    .cell.green{background:var(--board-green);color:#083;}
+    .cell.yellow{background:var(--board-yellow);color:#663c00;}
+    .cell.red{background:var(--board-red);color:#ffffff;}
+    .cell.start{background:#0b6efb;color:#ffffff;}
+    .cell.meta{background:#02b875;color:#ffffff;}
+    .cell.inner{background:transparent;border:none;}
+
+    .player-token{
+      position:relative;
+      width:22px;
+      height:28px;
+      border-radius:10px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.3);
+      border:2px solid #ffffff;
+    }
+    .player-token .token-body{
+      width:12px;
+      height:16px;
+      border-radius:8px;
+      background:#ffffff;
+    }
+    .player-token .token-head{
+      position:absolute;
+      top:-6px;
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:#ffe1c4;
+      border:2px solid rgba(0,0,0,0.15);
+    }
+    .player-token .token-name{
+      position:absolute;
+      bottom:32px;
+      left:50%;
+      transform:translateX(-50%);
+      white-space:nowrap;
+      font-size:0.6rem;
+      font-weight:700;
+      color:#111;
+      text-shadow:0 1px 2px #ffffff;
+      max-width:80px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .gender-M{
+      background:linear-gradient(135deg,#1e90ff,#004a9f);
+    }
+    .gender-F{
+      background:linear-gradient(135deg,#ff4f8b,#c2185b);
+    }
+
+    .sidebar{
+      background:var(--card-bg);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.12);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .sidebar h2{
+      font-size:1.1rem;
+    }
+    .dice-area{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:4px;
+    }
+    .dice-display{
+      width:52px;
+      height:52px;
+      border-radius:12px;
+      background:radial-gradient(circle at 30% 30%,#ffffff,#d0d5e5);
+      color:#111111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.8rem;
+      font-weight:800;
+      box-shadow:0 4px 10px rgba(0,0,0,0.35);
+      border:2px solid #b5bdd4;
+      transition:transform 0.2s ease;
+    }
+    .dice-display.rolling{
+      animation:spin 0.6s linear infinite;
+    }
+    @keyframes spin{
+      0%{transform:rotate(0deg);}
+      100%{transform:rotate(360deg);}
+    }
+    .tag{
+      font-size:0.75rem;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#e3f0ff;
+      color:#004a88;
+      display:inline-block;
+      margin-bottom:6px;
+      font-weight:600;
+    }
+    .question-card{
+      border-radius:12px;
+      padding:10px;
+      background:#fdfdfd;
+      border:1px solid #dde3f0;
+      font-size:0.9rem;
+    }
+    .question-card p{margin:4px 0;}
+    .options-list button{
+      width:100%;
+      text-align:left;
+      padding:6px 8px;
+      margin:3px 0;
+      border-radius:8px;
+      border:1px solid #cdd5e4;
+      background:#ffffff;
+      cursor:pointer;
+      font-size:0.9rem;
+    }
+    .options-list button:hover{
+      background:#edf4ff;
+      border-color:var(--primary);
+    }
+    #feedback{
+      margin-top:4px;
+      font-size:0.85rem;
+      min-height:32px;
+    }
+    #statusText{
+      font-size:0.85rem;
+      color:#555555;
+    }
+    .player-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:0.9rem;
+      padding:4px 6px;
+      border-radius:8px;
+      margin-bottom:4px;
+    }
+    .player-row.active{
+      background:linear-gradient(90deg,#e9f2ff,#ffffff);
+      border:1px solid #c0d9ff;
+    }
+    .player-name{
+      font-weight:700;
+    }
+    .player-score{
+      font-size:0.8rem;
+    }
+
+    @media(max-width:900px){
+      .game-layout{
+        grid-template-columns:1fr;
+      }
+      .mascot-wrap{
+        flex-direction:column;
+        align-items:center;
+      }
+      .speech-bubble{
+        max-width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- PANTALLA INICIAL -->
+  <section id="splash" class="page">
+    <div class="mascot-wrap">
+      <img src="assets/mascot.png" alt="Tío VialSafe">
+      <div class="speech-bubble">
+        <p id="bubbleText">Bienvenido a Challenge VialSafe</p>
+        <p id="subtitle">Juego educativo de seguridad vial.</p>
+      </div>
+    </div>
+
+    <div class="config-panel">
+      <h2>Configurar jugadores (2)</h2>
+      <p>Escribe los nombres y elige si es jugador hombre o mujer. Se verán sobre las fichas del tablero.</p>
+      <div class="player-config-row">
+        <strong>J1:</strong>
+        <label>Nombre
+          <input id="p1Name" class="config-input" placeholder="Jugador 1">
+        </label>
+        <label>
+          Género
+          <select id="p1Gender" class="config-select">
+            <option value="M">Hombre</option>
+            <option value="F">Mujer</option>
+          </select>
+        </label>
+      </div>
+      <div class="player-config-row">
+        <strong>J2:</strong>
+        <label>Nombre
+          <input id="p2Name" class="config-input" placeholder="Jugador 2">
+        </label>
+        <label>
+          Género
+          <select id="p2Gender" class="config-select">
+            <option value="M">Hombre</option>
+            <option value="F">Mujer</option>
+          </select>
+        </label>
+      </div>
+      <p style="margin-top:6px;font-size:0.8rem;">Puntuación: respuesta correcta +5 puntos, incorrecta −2 (mínimo 0).</p>
+    </div>
+
+    <button id="startBtn" class="btn hidden" onclick="startGame()">Comenzar</button>
+  </section>
+
+  <!-- PANTALLA DEL JUEGO -->
+  <section id="game" class="page">
+    <div id="game-inner" class="game-layout">
+      <div id="board">
+        <h2 id="board-title">Challenge VialSafe</h2>
+        <p class="board-subtitle">Responde preguntas, discute casos y gana puntos avanzando por el tablero.</p>
+        <div class="board-grid" id="boardGrid"></div>
+      </div>
+      <aside class="sidebar">
+        <h2>Turno de juego</h2>
+        <div id="playersPanel"></div>
+        <div class="dice-area">
+          <button id="rollBtn" class="btn small">Tirar dado</button>
+          <div class="dice-display" id="diceDisplay">–</div>
+        </div>
+        <p id="statusText">Haz clic en “Tirar dado” para comenzar.</p>
+        <div class="question-card">
+          <span class="tag" id="cardTypeTag">Carta</span>
+          <p id="questionText">Aquí aparecerán las preguntas y casos.</p>
+          <div class="options-list" id="optionsList"></div>
+          <div id="feedback"></div>
+        </div>
+        <button id="nextTurnBtn" class="btn small hidden">Siguiente turno</button>
+      </aside>
+    </div>
+  </section>
+
+<script>
+  // ---------- PANTALLA INICIAL ----------
+  window.onload = function () {
+    var bubbleText = document.getElementById('bubbleText');
+    var startBtn   = document.getElementById('startBtn');
+
+    // Mensaje inicial ya está en el HTML
+    setTimeout(function () {
+      bubbleText.textContent = 'Las creadoras de este magnífico juego: Paloma Arévalo y Francisca Dedes';
+    }, 3000);
+
+    setTimeout(function () {
+      startBtn.classList.remove('hidden');
+    }, 5000);
+
+    // Tablero se prepara de antemano
+    initGameSkeleton();
+  };
+
+  // ---------- ESTADO DEL JUEGO ----------
+  var diceDisplay, rollBtn, nextTurnBtn, statusText, playersPanel;
+  var cardTypeTag, questionText, optionsList, feedback, boardGrid;
+  var players = [];
+  var currentIndex = 0;
+  var waitingAnswer = false;
+  var boardReady = false;
+
+  // Cartas (puedes extenderlas con más preguntas)
+  var deckP = [
+    {
+      tipo: 'P — Señales',
+      texto: '¿Qué indica una señal circular roja con el número 60 en el centro?',
+      opciones: [
+        'Velocidad máxima 60 km/h',
+        'Prohibido adelantar',
+        'Zona escolar en 60 metros',
+        'Curva peligrosa'
+      ],
+      correcta: 0,
+      explicacion: 'Las señales circulares con borde rojo y número indican límite máximo de velocidad.'
+    },
+    {
+      tipo: 'P — Conducción segura',
+      texto: 'Al acercarte a un semáforo en amarillo (ámbar), ¿qué debes hacer?',
+      opciones: [
+        'Acelerar para pasar antes',
+        'Detenerte si es seguro hacerlo',
+        'Tocar bocina y seguir',
+        'Girar a la derecha sin mirar'
+      ],
+      correcta: 1,
+      explicacion: 'El amarillo indica precaución; debes detenerte si es seguro y no pones en riesgo a otros.'
+    },
+    {
+      tipo: 'P — Alcohol y drogas',
+      texto: '¿Cuál es un efecto del alcohol al conducir?',
+      opciones: [
+        'Mejora la visión nocturna',
+        'Aumenta el tiempo de reacción y reduce el juicio',
+        'No afecta a conductores expertos',
+        'Reduce la distancia de frenado'
+      ],
+      correcta: 1,
+      explicacion: 'El alcohol disminuye tus capacidades para reaccionar y tomar decisiones seguras.'
+    },
+    {
+      tipo: 'P — Conducción segura',
+      texto: '¿Cuál es la distancia mínima recomendada entre tu vehículo y el de adelante en condiciones normales?',
+      opciones: [
+        'La mitad de un auto',
+        'Regla de los 2 segundos',
+        '10 metros',
+        'No hay recomendación'
+      ],
+      correcta: 1,
+      explicacion: 'La regla de los 2 segundos ayuda a mantener un margen de reacción adecuado.'
+    }
+  ];
+
+  var deckC = [
+    {
+      tipo: 'C — Caso real',
+      texto: 'Estás en una intersección con baja visibilidad y un peatón se aproxima desde la derecha. ¿Qué haces?',
+      opciones: [
+        'Avanzo despacio y cedo el paso al peatón',
+        'Pito y paso rápido',
+        'Acelero para cruzar antes que él'
+      ],
+      correcta: 0,
+      explicacion: 'El peatón tiene prioridad; reduce velocidad y cede el paso de forma segura.'
+    }
+  ];
+
+  var deckA = [
+    {
+      tipo: 'A — Acción / Reto',
+      texto: 'En 30 s explica por qué no se debe usar el celular al volante. El grupo decide si ganas +5 puntos.',
+      opciones: [],
+      correcta: null,
+      explicacion: 'Comenta sobre distracción visual, manual y cognitiva.'
+    }
+  ];
+
+  // ---------- INICIALIZACIÓN BÁSICA (sin jugadores aún) ----------
+  function initGameSkeleton(){
+    diceDisplay = document.getElementById('diceDisplay');
+    rollBtn = document.getElementById('rollBtn');
+    nextTurnBtn = document.getElementById('nextTurnBtn');
+    statusText = document.getElementById('statusText');
+    playersPanel = document.getElementById('playersPanel');
+    cardTypeTag = document.getElementById('cardTypeTag');
+    questionText = document.getElementById('questionText');
+    optionsList = document.getElementById('optionsList');
+    feedback = document.getElementById('feedback');
+    boardGrid = document.getElementById('boardGrid');
+
+    if(!boardReady){
+      createBoard();
+      boardReady = true;
+    }
+  }
+
+  // ---------- ARRANCAR PARTIDA ----------
+  function startGame(){
+    var splash = document.getElementById('splash');
+    var game = document.getElementById('game');
+
+    var name1 = document.getElementById('p1Name').value.trim() || 'Jugador 1';
+    var name2 = document.getElementById('p2Name').value.trim() || 'Jugador 2';
+    var g1 = document.getElementById('p1Gender').value; // "M" o "F"
+    var g2 = document.getElementById('p2Gender').value;
+
+    players = [
+      { name: name1, gender: g1, pos: 1, score: 0 },
+      { name: name2, gender: g2, pos: 1, score: 0 }
+    ];
+    currentIndex = 0;
+    waitingAnswer = false;
+
+    splash.style.display = 'none';
+    game.style.display = 'flex';
+
+    renderPlayers();
+    highlightPositions();
+    rollBtn.disabled = false;
+    statusText.textContent = 'Turno de ' + players[currentIndex].name + '. Pulsa "Tirar dado" para comenzar.';
+
+    rollBtn.onclick = onRoll;
+    nextTurnBtn.onclick = onNextTurn;
+  }
+
+  // ---------- UTILIDADES ----------
+  function randomOf(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function edgeIndex(row,col){
+    if(row === 8 && col >= 1 && col <= 8) return col;
+    if(col === 8 && row >= 1 && row <= 7) return 8 + (8 - row);
+    if(row === 1 && col >= 1 && col <= 8) return 14 + (9 - col);
+    if(col === 1 && row >= 2 && row <= 7) return 22 + row - 1;
+    return 0;
+  }
+
+  function classifyCell(index){
+    if(index === 1) return 'start';
+    if(index === 15) return 'meta';
+    if(index % 3 === 1) return 'P';
+    if(index % 3 === 2) return 'C';
+    return 'A';
+  }
+
+  // ---------- TABLERO ----------
+  function createBoard(){
+    var total = 8*8;
+    for(var i=1;i<=total;i++){
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      var row = Math.ceil(i/8);
+      var col = ((i-1)%8)+1;
+      var isEdge = row===1 || row===8 || col===1 || col===8;
+      if(!isEdge){
+        cell.classList.add('inner');
+        boardGrid.appendChild(cell);
+        continue;
+      }
+      cell.classList.add('edge');
+      var index = edgeIndex(row,col);
+      var label = '';
+      if(index===1){
+        cell.classList.add('start'); label='INICIO';
+      } else if(index===15){
+        cell.classList.add('meta'); label='META';
+      } else if(index%3===1){
+        cell.classList.add('green'); label='P';
+      } else if(index%3===2){
+        cell.classList.add('yellow'); label='C';
+      } else{
+        cell.classList.add('red'); label='A';
+      }
+      cell.setAttribute('data-index', index);
+      cell.textContent = label;
+      boardGrid.appendChild(cell);
+    }
+  }
+
+  function getCellByIndex(index){
+    var cells = boardGrid.querySelectorAll('.cell.edge');
+    for(var i=0;i<cells.length;i++){
+      if(Number(cells[i].getAttribute('data-index')) === index){
+        return cells[i];
+      }
+    }
+    return null;
+  }
+
+  function renderPlayers(){
+    playersPanel.innerHTML = '';
+    for(var i=0;i<players.length;i++){
+      var p = players[i];
+      var row = document.createElement('div');
+      row.className = 'player-row' + (i===currentIndex ? ' active' : '');
+      row.innerHTML =
+        '<span class="player-name">'+p.name+'</span>' +
+        '<span class="player-score">Pts: '+p.score+' | Casilla: '+p.pos+'</span>';
+      playersPanel.appendChild(row);
+    }
+  }
+
+  function highlightPositions(){
+    var tokens = boardGrid.querySelectorAll('.player-token');
+    for(var i=0;i<tokens.length;i++){
+      tokens[i].parentNode.removeChild(tokens[i]);
+    }
+    for(var j=0;j<players.length;j++){
+      var p = players[j];
+      var cell = getCellByIndex(p.pos);
+      if(!cell) continue;
+      var token = document.createElement('div');
+      var genderClass = (p.gender === 'F') ? 'gender-F' : 'gender-M';
+      token.className = 'player-token ' + genderClass;
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'token-name';
+      nameSpan.textContent = p.name;
+      token.appendChild(nameSpan);
+
+      var head = document.createElement('div');
+      head.className = 'token-head';
+      token.appendChild(head);
+
+      var body = document.createElement('div');
+      body.className = 'token-body';
+      token.appendChild(body);
+
+      cell.appendChild(token);
+    }
+  }
+
+  // ---------- CARTAS ----------
+  function showCard(card, tipoLetra){
+    var partes = card.tipo.split('—');
+    var subtipo = partes.length>1 ? partes[1].replace(/^\s+/, '') : card.tipo;
+    cardTypeTag.textContent = 'Carta '+tipoLetra+' — '+subtipo;
+    questionText.textContent = card.texto;
+    optionsList.innerHTML = '';
+    feedback.textContent = '';
+    waitingAnswer = true;
+    nextTurnBtn.classList.add('hidden');
+
+    if(card.opciones && card.opciones.length){
+      for(var i=0;i<card.opciones.length;i++){
+        (function(idx){
+          var op = card.opciones[idx];
+          var btn = document.createElement('button');
+          btn.textContent = String.fromCharCode(65+idx)+') '+op;
+          btn.onclick = function(){ checkAnswer(card, idx); };
+          optionsList.appendChild(btn);
+        })(i);
+      }
+    } else {
+      var p = document.createElement('p');
+      p.textContent = 'Realiza el reto en voz alta. Luego el grupo decide si ganas los puntos (+5).';
+      optionsList.appendChild(p);
+      feedback.textContent = card.explicacion;
+      waitingAnswer = false;
+      nextTurnBtn.classList.remove('hidden');
+    }
+  }
+
+  function checkAnswer(card, idx){
+    var btns = optionsList.querySelectorAll('button');
+    for(var i=0;i<btns.length;i++){ btns[i].disabled = true; }
+    var player = players[currentIndex];
+
+    if(card.correcta === idx){
+      player.score += 5; // correcta
+      feedback.textContent = '¡Correcto! +5 puntos. ' + card.explicacion;
+    } else {
+      player.score -= 2; // incorrecta
+      if(player.score < 0) player.score = 0;
+      feedback.textContent = 'Respuesta incorrecta. −2 puntos. ' + card.explicacion;
+    }
+    waitingAnswer = false;
+    nextTurnBtn.classList.remove('hidden');
+    renderPlayers();
+  }
+
+  // ---------- DADO CON ANIMACIÓN ----------
+  function animateDice(callback){
+    var duration = 800;
+    var intervalTime = 80;
+    var elapsed = 0;
+    diceDisplay.classList.add('rolling');
+
+    var interval = setInterval(function(){
+      var temp = Math.floor(Math.random()*6)+1;
+      diceDisplay.textContent = temp;
+    }, intervalTime);
+
+    setTimeout(function(){
+      clearInterval(interval);
+      var finalRoll = Math.floor(Math.random()*6)+1;
+      diceDisplay.textContent = finalRoll;
+      diceDisplay.classList.remove('rolling');
+      callback(finalRoll);
+    }, duration);
+  }
+
+  // ---------- TURNOS ----------
+  function onRoll(){
+    if(waitingAnswer) return;
+    rollBtn.disabled = true;
+    var player = players[currentIndex];
+
+    animateDice(function(roll){
+      player.pos += roll;
+      if(player.pos > 28) player.pos = 28;
+      statusText.textContent = 'Turno de '+player.name+': avanza '+roll+' casillas.';
+      renderPlayers();
+      highlightPositions();
+
+      var tipoCasilla = classifyCell(player.pos);
+      if(tipoCasilla==='P'){
+        showCard(randomOf(deckP),'P');
+      } else if(tipoCasilla==='C'){
+        showCard(randomOf(deckC),'C');
+      } else if(tipoCasilla==='A'){
+        showCard(randomOf(deckA),'A');
+      } else if(tipoCasilla==='meta'){
+        cardTypeTag.textContent = 'META';
+        questionText.textContent = '¡'+player.name+' ha llegado a la META! Si tiene suficientes puntos, gana el Challenge VialSafe.';
+        feedback.textContent = 'Pueden seguir jugando hasta que todos lleguen a la meta.';
+        waitingAnswer = false;
+        nextTurnBtn.classList.remove('hidden');
+      } else {
+        cardTypeTag.textContent = 'Casilla especial';
+        questionText.textContent = 'Casilla especial. El docente puede aplicar atajo, sanción u otra regla.';
+        feedback.textContent = '';
+        waitingAnswer = false;
+        nextTurnBtn.classList.remove('hidden');
+      }
+    });
+  }
+
+  function onNextTurn(){
+    if(waitingAnswer) return;
+    currentIndex = (currentIndex+1) % players.length;
+    statusText.textContent = 'Turno de '+players[currentIndex].name+'. Pulsa "Tirar dado".';
+    nextTurnBtn.classList.add('hidden');
+    rollBtn.disabled = false;
+    renderPlayers();
+    highlightPositions();
+  }
+</script>
+</body>
+</html>
+
